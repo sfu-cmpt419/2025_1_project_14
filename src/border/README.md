@@ -89,6 +89,42 @@ This pipeline calculates a border score and also (as a bonus!) predicts whether 
 
 ---
 
+```
+borders/
+│── border_driver.py               
+│── requirements.txt               
+│── input_images/                  # You may need to create this yourself (Input)
+│   │── image1.jpg
+│   │── image2.jpg
+│── output/                        # You may need to create this yourself (Output)
+│   │── segmented/                 # Segmented lesion images
+│   │── smoothed/                  # Smoothed images
+│   │── borders/                   # Edge-detected images
+│   │── features/                  # Extracted features (fractal, zernike, border score)
+│   │── predictions/               # Model predictions (CNN, Naive Bayes, Final decision)
+│   │── evaluation/                # Evaluation metrics and visualizations
+│── s1_skin_lesion_extraction/      # Segmentation step
+│   │── gradual_focusing.m
+│   │── threshold.m
+│   │── ambig_pixels.m
+│── s2_border_detection/           # Edge detection and smoothing step
+│   │── smoothing.m
+│   │── canny_edge.m
+│── s3_measure_border_irregularity/ # Feature extraction step
+│   │── zernike_moments.py
+│   │── fractal_dimension.m
+│   │── border_score.py
+│── s4_classification/             # Classification step
+│   │── cnn_model.py
+│   │── naive_bayes.py
+│── s5_decision/                   # Final decision step
+│   │── final_decision.py
+│── s6_evaluation/                 # Evaluation step
+│   │── evaluate.py
+```
+
+---
+
 ## Dependencies
 
 Install the required dependencies using:
