@@ -1,0 +1,56 @@
+import cv2
+import numpy as np
+import os
+import pandas as pd
+
+SEGMENTED_IMAGES_DIR = "output/segmented/"
+BORDER_SCORES_CSV = "output/features/border_scores.csv"
+
+def divide_into_segments(mask):
+    h, w = mask.shape
+    segments = []
+    
+    cx, cy = w // 2, h // 2
+
+    segments.append(mask[0:cy, 0:cx])   # Top-left
+    segments.append(mask[0:cy, cx:w])   # Top-right
+    segments.append(mask[cy:h, 0:cx])   # Bottom-left
+    segments.append(mask[cy:h, cx:w])   # Bottom-right
+    segments.append(mask[0:cy, cx//2:3*cx//2])  # Top-center
+    segments.append(mask[cy:h, cx//2:3*cx//2])  # Bottom-center
+    segments.append(mask[cy//2:3*cy//2, 0:cx])  # Left-center
+    segments.append(mask[cy//2:3*cy//2, cx:w])  # Right-center
+    
+    return segments
+
+def border_score(mask):
+    segments = divide_into_segments(mask)
+    score = 0
+    
+    for seg in segments:
+        edges = cv2.Canny(seg, 100, 200)
+        nonzero_pixels = np.count_nonzero(edges)
+        
+        # If edges are dense, it's an abrupt cutoff (score 1), otherwise 0
+        if nonzero_pixels > (0.02 * seg.size):
+            score += 1
+    
+    return score 
+
+border_scores = []
+
+for file in os.listdir(SEGMENTED_IMAGES_DIR):
+    if file.endswith(".png") or file.endswith(".jpg"):
+        image_path = os.path.join(SEGMENTED_IMAGES_DIR, file)
+        image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+        
+        if image is not None:
+            score = border_score(image)
+            border_scores.append([file, score])
+            print(f"Processed {file} - Border Score: {score}")
+
+# Save results to CSV
+border_scores_df = pd.DataFrame(border_scores, columns=["Image_Name", "Border_Score"])
+border_scores_df.to_csv(BORDER_SCORES_CSV, index=False)
+
+print(f"Border scores saved to {BORDER_SCORES_CSV}")
