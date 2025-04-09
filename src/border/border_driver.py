@@ -3,7 +3,7 @@ import subprocess
 
 # Project Paths
 PROJECT_ROOT = os.getcwd()
-INPUT_DIR = os.path.join(PROJECT_ROOT, "input_images")
+INPUT_DIR = os.path.join(PROJECT_ROOT, "src\\border\input_images")
 OUTPUT_DIR = os.path.join(PROJECT_ROOT, "output")
 
 # Define output subdirectories

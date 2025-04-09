@@ -6,6 +6,8 @@ __pycache__/
 # C extensions
 *.so
 
+output/features/visual/*
+src/border/input_images/*
 # Distribution / packaging
 .Python
 build/

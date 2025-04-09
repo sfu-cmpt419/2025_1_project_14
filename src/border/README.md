@@ -11,6 +11,14 @@ This pipeline calculates a border score and also (as a bonus!) predicts whether 
 
 ## Pipeline Steps
 
+### **0. Faster B-Score**
+
+**Directory:** `s0_fast_border_score/`
+- **Purpose:** Fast border score calculations for images that already have segmentation masks.
+- **Key Files:**
+  - `b_score.m`: Gets the b-scores and optionally generates visualizations.
+  - **Output:** b_scores.csv  `output/features/` and visuals are stored in `output/features/visual/`.
+
 ### **1. Image Segmentation**
 
 **Directory:** `s1_skin_lesion_extraction/`
