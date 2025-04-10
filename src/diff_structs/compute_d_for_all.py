@@ -27,7 +27,7 @@ The final CSV (output_csv) will have one row per lesion with columns:
   dots_present, structureless_present, num_structures, D_value
 
 Usage:
-  python compute_d_for_all.py <image_folder> <attribute_folder> <output_csv>
+  python compute_d_for_all.py <seg_folder> <attr_folder> <output_csv>
 
 Example:
   python compute_d_for_all.py ISIC2018_Task1_Training_GroundTruth ISIC2018_Task2_Training_Groundtruth_v3 results.csv
