@@ -14,7 +14,7 @@ The five attributes are:
 
 Folder Assumptions:
   - seg_folder (e.g., ISIC2018_Task1_Training_GroundTruth) contains normal colored images 
-    named like "ISIC_0000000_segmentation.png".
+    named like "ISIC_0000000.jpg".
   - attr_folder (e.g., ISIC2018_Task2_Training_Groundtruth_v3) contains corresponding attribute masks:
       "ISIC_0000000_attribute_globules.png", 
       "ISIC_0000000_attribute_streaks.png",
@@ -27,7 +27,7 @@ The final CSV (output_csv) will have one row per lesion with columns:
   dots_present, structureless_present, num_structures, D_value
 
 Usage:
-  python compute_d_for_all.py <seg_folder> <attr_folder> <output_csv>
+  python compute_d_for_all.py <image_folder> <attribute_folder> <output_csv>
 
 Example:
   python compute_d_for_all.py ISIC2018_Task1_Training_GroundTruth ISIC2018_Task2_Training_Groundtruth_v3 results.csv
@@ -131,19 +131,19 @@ def compute_d_score(count, multiplier=0.5):
 # Main pipeline: Process each image and write results as we go
 # -----------------------------
 def process_and_write(seg_folder, attr_folder, output_csv):
-    # List all segmentation files in seg_folder that end with "_segmentation.png"
+    # List all segmentation files in seg_folder that end with ".jpg"
     seg_files = sorted([
-        f for f in os.listdir(seg_folder) if f.lower().endswith("_segmentation.png")
+        f for f in os.listdir(seg_folder) if f.lower().endswith(".jpg")
     ])
-    print(f"[INFO] Found {len(seg_files)} files in '{seg_folder}' ending with '_segmentation.png'.")
+    print(f"[INFO] Found {len(seg_files)} files in '{seg_folder}' ending with '.jpg'.")
 
     with open(output_csv, mode="w", newline="") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=FIELDNAMES)
         writer.writeheader()
 
         for idx, seg_filename in enumerate(seg_files, start=1):
-            # Derive lesion_id by stripping "_segmentation.png"
-            lesion_id = seg_filename.replace("_segmentation.png", "")
+            # Derive lesion_id by stripping ".jpg"
+            lesion_id = seg_filename.replace(".jpg", "")
             print(f"\n[{idx}/{len(seg_files)}] Processing lesion: {lesion_id}")
 
             seg_path = os.path.join(seg_folder, seg_filename)
@@ -160,7 +160,7 @@ def process_and_write(seg_folder, attr_folder, output_csv):
             print(f"   => Attributes: globules={globules_val}, streaks={streaks_val}, pigment_network={pigment_val}")
 
             # (B) Naive detection for dots and structureless using the same image file.
-            # Since we have no separate color image, we simply use the _segmentation.png.
+            # Since we have no separate color image, we simply use the .jpg.
             dots_val = detect_dots_naive(seg_path)
             structureless_val = detect_structureless_naive(seg_path)
             print(f"   => Naive: dots={dots_val}, structureless={structureless_val}")
