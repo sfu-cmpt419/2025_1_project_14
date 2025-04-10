@@ -1,60 +1,48 @@
+#!/usr/bin/env python3
 """
 compute_d_for_all.py
 
-Two-phase pipeline with single-row output per lesion at the end.
+Single-pass pipeline that computes five dermoscopic attribute values for each lesion
+and calculates the D value (D = 0.5 * [# of structures present]).
 
-Phase 1: 
-  - For each *_segmentation.png in ISIC2018_Task1_Training_GroundTruth, 
-    detect globules, streaks, pigment_network (attribute masks).
-  - Store results in a dictionary, with dots=structureless=False initially.
+The five attributes are:
+  1. globules
+  2. streaks
+  3. pigment_network
+  4. dots
+  5. structureless
 
-Phase 2:
-  - For each .jpg in ISIC2018_Task1-2_Validation_Input:
-      - If official seg mask is found => load it
-      - Else do naive manual_segmentation
-      - detect dots & structureless => update or create a dictionary entry
-        (if new, set attribute-based structures=0 by default)
+Folder Assumptions:
+  - seg_folder (e.g., ISIC2018_Task1_Training_GroundTruth) contains normal colored images 
+    named like "ISIC_0000000_segmentation.png".
+  - attr_folder (e.g., ISIC2018_Task2_Training_Groundtruth_v3) contains corresponding attribute masks:
+      "ISIC_0000000_attribute_globules.png", 
+      "ISIC_0000000_attribute_streaks.png",
+      "ISIC_0000000_attribute_pigment_network.png"
+      
+For dots and structureless, we run a naive detection directly on the same image.
 
-Finally: 
-  - One row per lesion in a single CSV => d_results.csv
+The final CSV (output_csv) will have one row per lesion with columns:
+  lesion_id, globules_present, streaks_present, pigment_network_present, 
+  dots_present, structureless_present, num_structures, D_value
+
+Usage:
+  python compute_d_for_all.py <seg_folder> <attr_folder> <output_csv>
+
+Example:
+  python compute_d_for_all.py ISIC2018_Task1_Training_GroundTruth ISIC2018_Task2_Training_Groundtruth_v3 results.csv
 """
 
 import os
+import sys
 import csv
-import pandas as pd
+import cv2
+import numpy as np
 
-# (1) s1_lesion_mask_extraction
-from s1_lesion_mask_extraction.load_mask import load_mask
-from s1_lesion_mask_extraction.preprocess_mask import preprocess_mask
-from s1_lesion_mask_extraction.remove_artifacts import remove_artifacts
-# Import our new manual segmentation
-from s1_lesion_mask_extraction.manual_segmentation import manual_segmentation
-
-# (2) s2_structure_detection - attribute-based
-from s2_structure_detection.detect_globules import detect_globules
-from s2_structure_detection.detect_streaks import detect_streaks
-from s2_structure_detection.detect_pigment_network import detect_pigment_network
-
-# (3) s2_structure_detection - rgb-based
-from s2_structure_detection.detect_structureless import detect_structureless
-from s2_structure_detection.detect_dots import detect_dots
-
-# (4) s3_measure_d_value
-from s3_measure_d_value.presence_count import presence_count
-from s3_measure_d_value.compute_d_score import compute_d_score
-
-# --------------------------
-# Folders & Output
-# --------------------------
-SEG_FOLDER       = "ISIC2018_Task1_Training_GroundTruth"
-ATTR_FOLDER      = "ISIC2018_Task2_Training_GroundTruth_v3"
-RGB_FOLDER       = "ISIC2018_Task1-2_Validation_Input"
-OUTPUT_CSV       = "d_results.csv"
-
-# Fieldnames for final CSV
+# Define CSV field names
 FIELDNAMES = [
     "lesion_id",
-    "globules_present", 
+    "globules_present",
     "streaks_present",
     "pigment_network_present",
     "dots_present",
@@ -63,187 +51,152 @@ FIELDNAMES = [
     "D_value"
 ]
 
-ATTRIBUTE_STRUCTURES = {
-    "globules": detect_globules,
-    "streaks": detect_streaks,
-    "pigment_network": detect_pigment_network
-}
+# -----------------------------
+# Attribute detection functions (Phase 1)
+# -----------------------------
+def detect_globules(attribute_mask_path):
+    """Return True if the globules attribute mask exists and contains any non-zero pixel."""
+    if not os.path.isfile(attribute_mask_path):
+        return False
+    mask = cv2.imread(attribute_mask_path, cv2.IMREAD_GRAYSCALE)
+    if mask is None:
+        return False
+    return bool(np.any(mask > 0))
 
-RGB_STRUCTURES = {
-    "dots": detect_dots,
-    "structureless": detect_structureless
-}
+def detect_streaks(attribute_mask_path):
+    """Return True if the streaks attribute mask exists and contains any non-zero pixel."""
+    if not os.path.isfile(attribute_mask_path):
+        return False
+    mask = cv2.imread(attribute_mask_path, cv2.IMREAD_GRAYSCALE)
+    if mask is None:
+        return False
+    return bool(np.any(mask > 0))
 
-def phase1_attribute_detection(seg_folder, attr_folder):
+def detect_pigment_network(attribute_mask_path):
+    """Return True if the pigment network attribute mask exists and contains any non-zero pixel."""
+    if not os.path.isfile(attribute_mask_path):
+        return False
+    mask = cv2.imread(attribute_mask_path, cv2.IMREAD_GRAYSCALE)
+    if mask is None:
+        return False
+    return bool(np.any(mask > 0))
+
+# -----------------------------
+# Naive detection functions for dots and structureless (Phase 2)
+# -----------------------------
+def detect_dots_naive(image_path):
     """
-    Phase 1 dictionary:
-      results_dict[lesion_id] = {
-         'globules': bool,
-         'streaks': bool,
-         'pigment_network': bool,
-         'dots': False,            # default
-         'structureless': False    # default
-      }
+    Naively detect "dots" by finding small dark blobs in the grayscale image.
     """
-    seg_files = [f for f in os.listdir(seg_folder) if f.lower().endswith("_segmentation.png")]
-    seg_files.sort()
-    print(f"[Phase1] Found {len(seg_files)} segmentation masks in {seg_folder}.\n")
+    if not os.path.isfile(image_path):
+        return False
+    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        return False
+    # Threshold: consider pixels darker than 50 as candidates for "dots"
+    _, dark_bin = cv2.threshold(img, 50, 255, cv2.THRESH_BINARY_INV)
+    num_labels, labels_im = cv2.connectedComponents(dark_bin)
 
-    results = {}
+    dot_count = 0
+    min_blob_size = 5
+    max_blob_size = 100
+    for label in range(1, num_labels):
+        blob_size = np.sum(labels_im == label)
+        if min_blob_size <= blob_size <= max_blob_size:
+            dot_count += 1
+    return bool(dot_count >= 1)
 
-    for idx, seg_filename in enumerate(seg_files, start=1):
-        lesion_id = seg_filename.replace("_segmentation.png", "")
-        seg_path  = os.path.join(seg_folder, seg_filename)
-
-        print(f"[Phase1] {idx}/{len(seg_files)} => {lesion_id}")
-        # Check that the segmentation is loadable
-        mask_img = load_mask(seg_path)
-        if mask_img is None:
-            print(f"   Could not load mask => skip {lesion_id}")
-            continue
-
-        # minimal cleanup
-        mask_clean = preprocess_mask(mask_img, 5, "open")
-        main_mask  = remove_artifacts(mask_clean)
-
-        # Initialize
-        row_data = {
-            "globules": False,
-            "streaks": False,
-            "pigment_network": False,
-            "dots": False,
-            "structureless": False
-        }
-
-        # Detect attribute-based
-        for struct_name, detect_func in ATTRIBUTE_STRUCTURES.items():
-            attr_filename = f"{lesion_id}_attribute_{struct_name}.png"
-            attr_path = os.path.join(attr_folder, attr_filename)
-            if not os.path.isfile(attr_path):
-                print(f"    [WARN] Missing {attr_filename} => {struct_name}=False")
-                row_data[struct_name] = False
-            else:
-                val = detect_func(attr_path)
-                row_data[struct_name] = val
-                print(f"    {struct_name}={val}")
-
-        results[lesion_id] = row_data
-
-    print("\n[Phase1] Done.\n")
-    return results
-
-
-def phase2_rgb_detection(results_dict, seg_folder, rgb_folder):
+def detect_structureless_naive(image_path):
     """
-    For each .jpg in rgb_folder:
-      - parse lesion_id
-      - if official seg mask => load it
-      - else => manual_segmentation
-      - detect dots, structureless => update existing row or create new
+    Naively detect "structureless" regions by computing the overall variance of the grayscale image.
+    If the variance is below a set threshold, consider the lesion structureless.
     """
-    jpg_files = [f for f in os.listdir(rgb_folder) if f.lower().endswith(".jpg")]
-    jpg_files.sort()
-    print(f"[Phase2] Found {len(jpg_files)} .jpg in {rgb_folder}.\n")
+    if not os.path.isfile(image_path):
+        return False
+    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        return False
+    data = img.astype(np.float32)
+    var_ = np.var(data)
+    var_threshold = 500.0  # Threshold may be tuned based on image properties
+    return bool(var_ < var_threshold)
 
-    for idx, jpg_filename in enumerate(jpg_files, start=1):
-        lesion_id = jpg_filename.replace(".jpg", "")
-        rgb_path  = os.path.join(rgb_folder, jpg_filename)
+# -----------------------------
+# Utility function: Compute D score
+# -----------------------------
+def compute_d_score(count, multiplier=0.5):
+    return multiplier * count
 
-        print(f"[Phase2] {idx}/{len(jpg_files)} => lesion_id={lesion_id}")
-
-        seg_path = os.path.join(seg_folder, f"{lesion_id}_segmentation.png")
-        if os.path.isfile(seg_path):
-            # We can use official segmentation
-            dots_val = detect_dots(rgb_path, seg_path)
-            struct_val = detect_structureless(rgb_path, seg_path)
-        else:
-            # manual segmentation
-            print(f"    No official seg mask => doing manual_segmentation.")
-            man_mask = manual_segmentation(rgb_path)
-            if man_mask is None:
-                print("    [WARN] Could not do manual segmentation => skip this lesion.")
-                continue
-            # We'll have to adapt detect_dots/detect_structureless to accept mask arrays
-            # or we create a temp seg file. For now, let's skip that detail and assume we've done it:
-            # Example approach: write man_mask to a temp file => detect
-            import cv2
-            temp_mask_path = f"temp_{lesion_id}_seg.png"
-            cv2.imwrite(temp_mask_path, man_mask)
-            
-            dots_val = detect_dots(rgb_path, temp_mask_path)
-            struct_val = detect_structureless(rgb_path, temp_mask_path)
-
-            # remove temp file
-            os.remove(temp_mask_path)
-
-        # If lesion_id not in dict => means it wasn't found in Phase1
-        if lesion_id not in results_dict:
-            # create a new entry
-            results_dict[lesion_id] = {
-                "globules": False,
-                "streaks": False,
-                "pigment_network": False,
-                "dots": dots_val,
-                "structureless": struct_val
-            }
-        else:
-            # update existing
-            results_dict[lesion_id]["dots"] = dots_val
-            results_dict[lesion_id]["structureless"] = struct_val
-
-        print(f"    dots={dots_val}, structureless={struct_val}")
-
-    print("[Phase2] Done.\n")
-    return results_dict
-
-
-def finalize_and_write_csv(results_dict, output_csv):
-    """
-    Once both phases are complete, we have a single dictionary entry per lesion.
-    For each lesion => compute total presence_count => D = 0.5 * count
-    Write exactly one row per lesion to CSV.
-    """
-    print("[Final] Writing results to CSV =>", output_csv)
-    all_lesions = sorted(results_dict.keys())
+# -----------------------------
+# Main pipeline: Process each image and write results as we go
+# -----------------------------
+def process_and_write(seg_folder, attr_folder, output_csv):
+    # List all segmentation files in seg_folder that end with "_segmentation.png"
+    seg_files = sorted([
+        f for f in os.listdir(seg_folder) if f.lower().endswith("_segmentation.png")
+    ])
+    print(f"[INFO] Found {len(seg_files)} files in '{seg_folder}' ending with '_segmentation.png'.")
 
     with open(output_csv, mode="w", newline="") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=FIELDNAMES)
         writer.writeheader()
 
-        for lesion_id in all_lesions:
-            row_data = results_dict[lesion_id]
-            # presence_count
-            count_structs = (row_data["globules"] + 
-                             row_data["streaks"] + 
-                             row_data["pigment_network"] + 
-                             row_data["dots"] + 
-                             row_data["structureless"])
-            d_val = compute_d_score(count_structs, 0.5)
+        for idx, seg_filename in enumerate(seg_files, start=1):
+            # Derive lesion_id by stripping "_segmentation.png"
+            lesion_id = seg_filename.replace("_segmentation.png", "")
+            print(f"\n[{idx}/{len(seg_files)}] Processing lesion: {lesion_id}")
 
-            out_row = {
+            seg_path = os.path.join(seg_folder, seg_filename)
+
+            # (A) Attribute-based detection using attribute masks in attr_folder:
+            globules_path = os.path.join(attr_folder, f"{lesion_id}_attribute_globules.png")
+            streaks_path  = os.path.join(attr_folder, f"{lesion_id}_attribute_streaks.png")
+            pigment_path  = os.path.join(attr_folder, f"{lesion_id}_attribute_pigment_network.png")
+
+            globules_val = detect_globules(globules_path)
+            streaks_val = detect_streaks(streaks_path)
+            pigment_val = detect_pigment_network(pigment_path)
+
+            print(f"   => Attributes: globules={globules_val}, streaks={streaks_val}, pigment_network={pigment_val}")
+
+            # (B) Naive detection for dots and structureless using the same image file.
+            # Since we have no separate color image, we simply use the _segmentation.png.
+            dots_val = detect_dots_naive(seg_path)
+            structureless_val = detect_structureless_naive(seg_path)
+            print(f"   => Naive: dots={dots_val}, structureless={structureless_val}")
+
+            # (C) Compute total number of structures present and D value.
+            # The five attributes are: globules, streaks, pigment_network, dots, structureless.
+            num_structs = sum([globules_val, streaks_val, pigment_val, dots_val, structureless_val])
+            d_value = compute_d_score(num_structs, 0.5)
+            print(f"   => Total structures = {num_structs}, D value = {d_value:.2f}")
+
+            # (D) Write the data for this lesion directly to the CSV.
+            row = {
                 "lesion_id": lesion_id,
-                "globules_present": int(row_data["globules"]),
-                "streaks_present": int(row_data["streaks"]),
-                "pigment_network_present": int(row_data["pigment_network"]),
-                "dots_present": int(row_data["dots"]),
-                "structureless_present": int(row_data["structureless"]),
-                "num_structures": count_structs,
-                "D_value": d_val
+                "globules_present": int(globules_val),
+                "streaks_present": int(streaks_val),
+                "pigment_network_present": int(pigment_val),
+                "dots_present": int(dots_val),
+                "structureless_present": int(structureless_val),
+                "num_structures": num_structs,
+                "D_value": d_value
             }
-            writer.writerow(out_row)
+            writer.writerow(row)
+            print("   Row written.")
 
-    print(f"[Final] Wrote {len(all_lesions)} rows to {output_csv}.\n")
-
+    print(f"\n[Done] CSV file '{output_csv}' written with {len(seg_files)} rows.")
 
 def main():
-    # 1) Phase1 => attribute-based detection
-    phase1_dict = phase1_attribute_detection(SEG_FOLDER, ATTR_FOLDER)
+    if len(sys.argv) < 4:
+        print("Usage: python compute_d_for_all.py <seg_folder> <attr_folder> <output_csv>")
+        sys.exit(1)
+    seg_folder = sys.argv[1]
+    attr_folder = sys.argv[2]
+    output_csv = sys.argv[3]
 
-    # 2) Phase2 => rgb-based detection => updates/inserts data
-    final_dict = phase2_rgb_detection(phase1_dict, SEG_FOLDER, RGB_FOLDER)
-
-    # 3) Final => single CSV row per lesion
-    finalize_and_write_csv(final_dict, OUTPUT_CSV)
+    process_and_write(seg_folder, attr_folder, output_csv)
+    print("[All Done]")
 
 if __name__ == "__main__":
     main()
