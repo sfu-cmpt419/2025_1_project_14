@@ -39,16 +39,23 @@ d_df = pd.read_csv("d_results.csv")
 d_df = d_df[['lesion_id', 'D_value']].rename(columns={'lesion_id': 'Image'})
 d_df = d_df.drop_duplicates(subset='Image')
 
-### --- MERGE ALL THREE ON 'Image' --- ###
+### --- B VALUE FILE --- ###
+b_df = pd.read_csv("b_values.csv")
+b_df = b_df.rename(columns={"Image_Name": "Image", "Border_Score": "B_score"})
+b_df['Image'] = b_df['Image'].str.replace('.jpg', '', regex=False)
+b_df = b_df.drop_duplicates(subset='Image')
+
+
+### --- MERGE ALL DATAFRAMES --- ###
 merged_df = pd.merge(asymmetry_combined, color_combined, on='Image', how='outer')
 merged_df = pd.merge(merged_df, d_df, on='Image', how='outer')
+merged_df = pd.merge(merged_df, b_df, on='Image', how='outer')
 
-# Drop any rows with missing values in any column
+# Drop rows with missing values in any column
 merged_df = merged_df.dropna()
 
-# Sort and reset index
+# Sort and save
 merged_df = merged_df.sort_values(by='Image').reset_index(drop=True)
+merged_df.to_csv("clean_data.csv", index=False)
 
-# Save final file
-merged_df.to_csv("merged_data.csv", index=False)
-print("Saved fully cleaned and merged dataset to 'merged_data.csv'.")
+print("Saved fully merged and cleaned dataset to 'clean_data.csv'.")
