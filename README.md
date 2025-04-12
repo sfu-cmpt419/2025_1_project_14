@@ -58,10 +58,10 @@ Provide sufficient instructions to reproduce and install your project.
 Provide _exact_ versions, test on CSIL or reference workstations.
 
 ```bash
-git clone $THISREPO
-cd $THISREPO
+git clone https://github.com/sfu-cmpt419/2025_1_project_14.git
+cd 2025_1_project_14
 conda env create -f requirements.yml
-conda activate amazing
+conda activate abcd-env
 ```
 
 <a name="repro"></a>
