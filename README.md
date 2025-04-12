@@ -39,9 +39,6 @@ for img in imgs:
 ```
 
 ### What to find where
-
-Explain briefly what files are found where
-
 ```bash
 repository
 ├── src                          ## source code of ABCD ground-truth collection implementation, ABCD ground-truth value results, and our model to predict ABCD values
@@ -54,8 +51,7 @@ repository
 
 ## 2. Installation
 
-Provide sufficient instructions to reproduce and install your project. 
-Provide _exact_ versions, test on CSIL or reference workstations.
+Note: These steps require that conda is installed on your system.
 
 ```bash
 git clone https://github.com/sfu-cmpt419/2025_1_project_14.git
