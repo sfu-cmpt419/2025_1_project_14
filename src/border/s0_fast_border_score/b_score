@@ -13,9 +13,9 @@ On line 155 you can create_visualizations(), which will draw the following:
     - The GREEN eight splices (used in border calculations)
     - The CYAN points where abrupt borders were detected.
 """
-SEGMENTED_IMAGES_DIR = "src/border/input_images/raw"
-SEGMENTED_MASKS_DIR = "src/border/input_images/mask"
-BORDER_SCORES_CSV = "output/border/border_scores.csv"
+SEGMENTED_IMAGES_DIR = "src/border/input_images/b_images"
+SEGMENTED_MASKS_DIR = "src/border/input_images/b_masks"
+BORDER_SCORES_CSV = "output/border/b_values_val.csv"
 SEGMENTED_VISUAL_DIR = "output/border/visual"
 PIXEL_DENSITY_THRESHOLD = 0.0075
 INTENSITY_DIFF_THRESHOLD = 35
@@ -153,7 +153,7 @@ def process_images():
     os.makedirs(os.path.dirname(BORDER_SCORES_CSV), exist_ok=True)
     border_scores_df = pd.DataFrame(border_scores, columns=["Image_Name", "Border_Score"])
     border_scores_df.to_csv(BORDER_SCORES_CSV, index=False)
-    create_visualizations()
+    #create_visualizations()
 
 if __name__ == "__main__":
     process_images()

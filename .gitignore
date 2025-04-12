@@ -168,3 +168,4 @@ cython_debug/
 **/ISIC2018_Task1-2_Test_Input/
 **/ISIC2018_Task1-2_Training_Input/
 **/ISIC2018_Task1-2_Validation_Input/
+abcd_model.h5
