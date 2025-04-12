@@ -7,7 +7,7 @@ This project involves the training of a deep learning model to predict ABCD (Asy
 
 ## Important Links
 
-| [Timesheet]([https://google.com](https://1sfu-my.sharepoint.com/:x:/r/personal/hamarneh_sfu_ca/Documents/TEACHING/CMPT419_SPRING2025/FOR_STUDENTS/ProjectGroup_Timesheets/Group_14_Timesheet.xlsx?d=wb4fc5fad695147f6accf7fc09ad9d10e&csf=1&web=1&e=7a8AYw)) | [Slack channel](https://cmpt419spring2025.slack.com/archives/C086FBD62HJ) | [Project report](https://www.overleaf.com/5171835784jfdvtpsmkbjs#8e29b4
+| [Timesheet](https://1sfu-my.sharepoint.com/:x:/r/personal/hamarneh_sfu_ca/Documents/TEACHING/CMPT419_SPRING2025/FOR_STUDENTS/ProjectGroup_Timesheets/Group_14_Timesheet.xlsx?d=wb4fc5fad695147f6accf7fc09ad9d10e&csf=1&web=1&e=7a8AYw) | [Slack channel](https://cmpt419spring2025.slack.com/archives/C086FBD62HJ) | [Project report](https://www.overleaf.com/5171835784jfdvtpsmkbjs#8e29b4
 ) |
 |-----------|---------------|-------------------------|
 
