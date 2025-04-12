@@ -70,8 +70,21 @@ unzip dataset.zip
 conda activate amazing
 python evaluate.py --epochs=10 --data=/in/put/dir
 ```
-Data can be found at ...
-Output will be saved in ...
+
+Ground-truth ABCD values can be found in src/truth_data. To generate these ground-truth values manually, the training, validation, and test datasets can be found [here](https://challenge.isic-archive.com/data/#2018). Tasks 1-2 contain the relevant data used in this project. Within source, the asymmetry, border, color, and diff_structs folder contain individual scripts to generate the respective values. The path to the relevant datasets will also need to be provided.
+
+The script to train our model can be found in src/model/train_abcd_model.py. The following arguments are needed to run this:
+
+```python
+    csv_path = args.csv_path
+    image_dir = args.image_dir
+    output_model = args.output_model
+    img_height = args.img_height
+    img_width = args.img_width
+    batch_size = args.batch_size
+    epochs = args.epochs
+    test_split = args.test_split
+```
 
 <a name="guide"></a>
 ## 4. Guidance
