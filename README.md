@@ -1,18 +1,17 @@
-# SFU CMPT 419 Project Template -- Replace with project title
-This repository is a template for your CMPT 419 course project.
+# SFU CMPT 419 Project Template -- Predict Skin Lesion ABCD
+
 Replace the title with your project title, and **add a snappy acronym that people remember (mnemonic)**.
 
-Add a 1-2 line summary of your project here.
+This project involves the training of a deep learning model to predict ABCD (Asymmetry, Border, Colour, and Dermoscopic Structure) values directly from an RGB image of a lesion without the use of a segmentation mask.
+
 
 ## Important Links
 
-| [Timesheet](https://google.com) | [Slack channel](https://google.com) | [Project report](https://google.com) |
+| [Timesheet](https://1sfu-my.sharepoint.com/:x:/r/personal/hamarneh_sfu_ca/Documents/TEACHING/CMPT419_SPRING2025/FOR_STUDENTS/ProjectGroup_Timesheets/Group_14_Timesheet.xlsx?d=wb4fc5fad695147f6accf7fc09ad9d10e&csf=1&web=1&e=7a8AYw) | [Slack channel](https://cmpt419spring2025.slack.com/archives/C086FBD62HJ) | [Project report](https://www.overleaf.com/5171835784jfdvtpsmkbjs#8e29b4
+) |
 |-----------|---------------|-------------------------|
 
 
-- Timesheet: Link your timesheet (pinned in your project's Slack channel) where you track per student the time and tasks completed/participated for this project/
-- Slack channel: Link your private Slack project channel.
-- Project report: Link your Overleaf project report document.
 
 
 ## Video/demo/GIF
