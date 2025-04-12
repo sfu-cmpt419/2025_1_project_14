@@ -1,13 +1,11 @@
-# SFU CMPT 419 Project Template -- Predict Skin Lesion ABCD
-
-Replace the title with your project title, and **add a snappy acronym that people remember (mnemonic)**.
+# SFU CMPT 419 Project -- Predicting Skin Lesion ABCD Values (Always Buy Canadian Donuts)
 
 This project involves the training of a deep learning model to predict ABCD (Asymmetry, Border, Colour, and Dermoscopic Structure) values directly from an RGB image of a lesion without the use of a segmentation mask.
 
 
 ## Important Links
 
-| [Timesheet](https://1sfu-my.sharepoint.com/:x:/r/personal/hamarneh_sfu_ca/Documents/TEACHING/CMPT419_SPRING2025/FOR_STUDENTS/ProjectGroup_Timesheets/Group_14_Timesheet.xlsx?d=wb4fc5fad695147f6accf7fc09ad9d10e&csf=1&web=1&e=7a8AYw) | [Slack channel](https://cmpt419spring2025.slack.com/archives/C086FBD62HJ) | [Project report](https://www.overleaf.com/5171835784jfdvtpsmkbjs#8e29b4
+| [Timesheet](https://1sfu-my.sharepoint.com/:x:/r/personal/hamarneh_sfu_ca/Documents/TEACHING/CMPT419_SPRING2025/FOR_STUDENTS/ProjectGroup_Timesheets/Group_14_Timesheet.xlsx?d=wb4fc5fad695147f6accf7fc09ad9d10e&csf=1&web=1&e=7a8AYw) | [Slack channel](https://cmpt419spring2025.slack.com/archives/C086FBD62HJ) | [Project report](https://www.overleaf.com/5171835784jfdvtpsmkbjs#8e29b4 | [Dermoscopedia](https://dermoscopedia.org/ABCD_rule) | [ISIC 2018 Challenge](https://challenge.isic-archive.com/data/#2018)
 ) |
 |-----------|---------------|-------------------------|
 
@@ -41,30 +39,25 @@ for img in imgs:
 ```
 
 ### What to find where
-
-Explain briefly what files are found where
-
 ```bash
 repository
-├── src                          ## source code of the package itself
-├── scripts                      ## scripts, if needed
-├── docs                         ## If needed, documentation   
-├── README.md                    ## You are here
-├── requirements.yml             ## If you use conda
+├── src                          ## source code of ABCD ground-truth collection implementation, ABCD ground-truth value results, and our model to predict ABCD values
+├── .gitignore                   ## If needed, documentation   
+├── README.md
+├── requirements.yml             ## Python code dependencies
 ```
 
 <a name="installation"></a>
 
 ## 2. Installation
 
-Provide sufficient instructions to reproduce and install your project. 
-Provide _exact_ versions, test on CSIL or reference workstations.
+Note: These steps require that conda is installed on your system.
 
 ```bash
-git clone $THISREPO
-cd $THISREPO
+git clone https://github.com/sfu-cmpt419/2025_1_project_14.git
+cd 2025_1_project_14
 conda env create -f requirements.yml
-conda activate amazing
+conda activate abcd-env
 ```
 
 <a name="repro"></a>
@@ -77,8 +70,21 @@ unzip dataset.zip
 conda activate amazing
 python evaluate.py --epochs=10 --data=/in/put/dir
 ```
-Data can be found at ...
-Output will be saved in ...
+
+Ground-truth ABCD values can be found in src/truth_data. To generate these ground-truth values manually, the training, validation, and test datasets can be found [here](https://challenge.isic-archive.com/data/#2018). Tasks 1-2 contain the relevant data used in this project. Within source, the asymmetry, border, color, and diff_structs folder contain individual scripts to generate the respective values. The path to the relevant datasets will also need to be provided.
+
+The script to train our model can be found in src/model/train_abcd_model.py. The following arguments are needed to run this:
+
+```python
+    csv_path = args.csv_path
+    image_dir = args.image_dir
+    output_model = args.output_model
+    img_height = args.img_height
+    img_width = args.img_width
+    batch_size = args.batch_size
+    epochs = args.epochs
+    test_split = args.test_split
+```
 
 <a name="guide"></a>
 ## 4. Guidance
