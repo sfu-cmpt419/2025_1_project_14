@@ -1,13 +1,11 @@
-# SFU CMPT 419 Project Template -- Predict Skin Lesion ABCD
-
-Replace the title with your project title, and **add a snappy acronym that people remember (mnemonic)**.
+# SFU CMPT 419 Project -- Predicting Skin Lesion ABCD Values (Always Buy Canadian Donuts)
 
 This project involves the training of a deep learning model to predict ABCD (Asymmetry, Border, Colour, and Dermoscopic Structure) values directly from an RGB image of a lesion without the use of a segmentation mask.
 
 
 ## Important Links
 
-| [Timesheet](https://1sfu-my.sharepoint.com/:x:/r/personal/hamarneh_sfu_ca/Documents/TEACHING/CMPT419_SPRING2025/FOR_STUDENTS/ProjectGroup_Timesheets/Group_14_Timesheet.xlsx?d=wb4fc5fad695147f6accf7fc09ad9d10e&csf=1&web=1&e=7a8AYw) | [Slack channel](https://cmpt419spring2025.slack.com/archives/C086FBD62HJ) | [Project report](https://www.overleaf.com/5171835784jfdvtpsmkbjs#8e29b4
+| [Timesheet](https://1sfu-my.sharepoint.com/:x:/r/personal/hamarneh_sfu_ca/Documents/TEACHING/CMPT419_SPRING2025/FOR_STUDENTS/ProjectGroup_Timesheets/Group_14_Timesheet.xlsx?d=wb4fc5fad695147f6accf7fc09ad9d10e&csf=1&web=1&e=7a8AYw) | [Slack channel](https://cmpt419spring2025.slack.com/archives/C086FBD62HJ) | [Project report](https://www.overleaf.com/5171835784jfdvtpsmkbjs#8e29b4 | [Dermoscopedia](https://dermoscopedia.org/ABCD_rule) | [ISIC 2018 Challenge](https://challenge.isic-archive.com/data/#2018)
 ) |
 |-----------|---------------|-------------------------|
 
