@@ -45,8 +45,8 @@ Explain briefly what files are found where
 ```bash
 repository
 ├── src                          ## source code of ABCD ground-truth collection implementation, ABCD ground-truth value results, and our model to predict ABCD values
-├── .gitignore                         ## If needed, documentation   
-├── README.md                    ## You are here
+├── .gitignore                   ## If needed, documentation   
+├── README.md
 ├── requirements.yml             ## Python code dependencies
 ```
 
