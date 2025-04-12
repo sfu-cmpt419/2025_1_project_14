@@ -44,11 +44,10 @@ Explain briefly what files are found where
 
 ```bash
 repository
-├── src                          ## source code of the package itself
-├── scripts                      ## scripts, if needed
-├── docs                         ## If needed, documentation   
+├── src                          ## source code of ABCD ground-truth collection implementation, ABCD ground-truth value results, and our model to predict ABCD values
+├── .gitignore                         ## If needed, documentation   
 ├── README.md                    ## You are here
-├── requirements.yml             ## If you use conda
+├── requirements.yml             ## Python code dependencies
 ```
 
 <a name="installation"></a>
